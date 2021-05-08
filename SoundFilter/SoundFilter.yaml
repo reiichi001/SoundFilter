@@ -1,0 +1,9 @@
+name: Sound Filter
+author: ascclemens
+description: |-
+  Filters any sound or set of sounds from the game.
+
+  - Remove a battle sound effect you don't like
+  - Remove specific emote sounds
+  - Remove specific background music
+repo_url: https://git.sr.ht/jkcclemens/SoundFilter

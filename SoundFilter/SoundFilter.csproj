@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <Version>1.0.0</Version>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="Dalamud">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="ImGui.NET">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\ImGui.NET.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="ImGuiScene">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\ImGuiScene.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Update="Resources\Language.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Language.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <None Remove="Resources\gaya_nosound.scd" />
+        <EmbeddedResource Include="Resources\gaya_nosound.scd" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Update="Resources\Language.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Language.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="DalamudPackager" Version="1.2.1" />
+        <PackageReference Include="DotNet.Glob" Version="3.1.2" />
+        <PackageReference Include="Fody" Version="6.5.1" PrivateAssets="all" />
+        <PackageReference Include="ILMerge.Fody" Version="1.16.0" PrivateAssets="all" />
+        <PackageReference Include="Resourcer.Fody" Version="1.8.0" PrivateAssets="all" />
+        <PackageReference Include="ResourcesMerge.Fody" Version="1.0.1" PrivateAssets="all" />
+    </ItemGroup>
+</Project>
