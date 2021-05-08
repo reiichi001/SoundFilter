@@ -192,7 +192,7 @@ namespace SoundFilter {
                 // if we immediately have the scd data, cache it, otherwise add it to a waiting list to hopefully be picked up at sound play time
                 if (scdData != IntPtr.Zero) {
                     this.Scds[scdData] = path;
-                } else if (this.Scds.All(entry => entry.Value != path)) {
+                } else {
                     // only add to the waiting list if we haven't resolved this path yet
                     this.AsyncScds[(IntPtr) ret] = path;
                 }
