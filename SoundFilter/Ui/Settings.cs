@@ -80,6 +80,12 @@ namespace SoundFilter.Ui {
 
                     ImGui.SameLine();
 
+                    if (Util.IconButton(FontAwesomeIcon.Copy, $"copy-{glob}")) {
+                        ImGui.SetClipboardText(glob);
+                    }
+
+                    ImGui.SameLine();
+
                     shouldSave |= ImGui.Checkbox(entry.Value.Name, ref entry.Value.Enabled);
                     if (ImGui.IsItemHovered()) {
                         ImGui.BeginTooltip();
