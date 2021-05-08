@@ -73,6 +73,8 @@ namespace SoundFilter.Ui {
             ImGui.Separator();
 
             if (ImGui.BeginChild("filtered-sounds")) {
+                var i = 0;
+
                 foreach (var entry in this.Plugin.Config.Filtered.ToList()) {
                     var glob = entry.Key;
 
@@ -89,12 +91,14 @@ namespace SoundFilter.Ui {
 
                     ImGui.SameLine();
 
-                    shouldSave |= ImGui.Checkbox(entry.Value.Name, ref entry.Value.Enabled);
+                    shouldSave |= ImGui.Checkbox($"{entry.Value.Name}##{i}-{glob}", ref entry.Value.Enabled);
                     if (ImGui.IsItemHovered()) {
                         ImGui.BeginTooltip();
                         ImGui.TextUnformatted(glob);
                         ImGui.EndTooltip();
                     }
+
+                    i += 1;
                 }
 
                 ImGui.EndChild();
