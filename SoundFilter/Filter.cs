@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 
@@ -117,6 +118,7 @@ namespace SoundFilter {
             Marshal.FreeHGlobal(this.NoSoundPtr);
         }
 
+        [HandleProcessCorruptedStateExceptions]
         private void* PlaySpecificSoundDetour(long a1, int idx) {
             if (a1 == 0) {
                 goto Original;
