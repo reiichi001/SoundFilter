@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using Dalamud.Interface;
 using ImGuiNET;
 using SoundFilter.Resources;
@@ -18,6 +19,8 @@ namespace SoundFilter.Ui {
             if (!this.Plugin.Config.ShowLog) {
                 return;
             }
+
+            ImGui.SetNextWindowSize(new Vector2(500, 450), ImGuiCond.FirstUseEver);
 
             if (!ImGui.Begin(Language.LogWindowTitle, ref this.Plugin.Config.ShowLog)) {
                 this.Plugin.Config.Save();
