@@ -97,6 +97,24 @@ namespace SoundFilter.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Filter name.
+        /// </summary>
+        internal static string SettingsAddFilterName {
+            get {
+                return ResourceManager.GetString("SettingsAddFilterName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sound path to filter.
+        /// </summary>
+        internal static string SettingsAddPathToFilter {
+            get {
+                return ResourceManager.GetString("SettingsAddPathToFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable sound filter.
         /// </summary>
         internal static string SettingsEnableSoundFilter {

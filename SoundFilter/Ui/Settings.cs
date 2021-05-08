@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Dalamud.Interface;
-using DotNet.Globbing;
 using ImGuiNET;
+using SoundFilter.Config;
 using SoundFilter.Resources;
 
 namespace SoundFilter.Ui {
@@ -10,6 +10,7 @@ namespace SoundFilter.Ui {
         private SoundFilterPlugin Plugin { get; }
 
         private bool _showWindow;
+        private string _filterName = string.Empty;
         private string _soundPath = string.Empty;
 
         internal Settings(SoundFilterPlugin plugin) {
@@ -52,18 +53,25 @@ namespace SoundFilter.Ui {
 
             ImGui.Separator();
 
-            ImGui.TextUnformatted("Sound path to filter");
+            ImGui.TextUnformatted(Language.SettingsAddFilterName);
+            ImGui.InputText("##sound-filter-name", ref this._filterName, 255);
+
+            ImGui.TextUnformatted(Language.SettingsAddPathToFilter);
             ImGui.InputText("##sound-path", ref this._soundPath, 255);
             ImGui.SameLine();
-            if (Util.IconButton(FontAwesomeIcon.Plus, "add") && !string.IsNullOrWhiteSpace(this._soundPath)) {
-                this.Plugin.Config.Filtered[this._soundPath] = true;
+            if (Util.IconButton(FontAwesomeIcon.Plus, "add") && !string.IsNullOrWhiteSpace(this._soundPath) && !string.IsNullOrWhiteSpace(this._filterName)) {
+                this.Plugin.Config.Filtered[this._soundPath] = new CustomFilter {
+                    Name = this._filterName,
+                    Enabled = true,
+                };
                 shouldSave = true;
             }
+
+            ImGui.Separator();
 
             if (ImGui.BeginChild("filtered-sounds")) {
                 foreach (var entry in this.Plugin.Config.Filtered.ToList()) {
                     var glob = entry.Key;
-                    var enabled = entry.Value;
 
                     if (Util.IconButton(FontAwesomeIcon.Trash, $"delete-{glob}")) {
                         this.Plugin.Config.Filtered.Remove(glob);
@@ -72,9 +80,11 @@ namespace SoundFilter.Ui {
 
                     ImGui.SameLine();
 
-                    if (ImGui.Checkbox(glob, ref enabled)) {
-                        this.Plugin.Config.Filtered[glob] = enabled;
-                        shouldSave = true;
+                    shouldSave |= ImGui.Checkbox(entry.Value.Name, ref entry.Value.Enabled);
+                    if (ImGui.IsItemHovered()) {
+                        ImGui.BeginTooltip();
+                        ImGui.TextUnformatted(glob);
+                        ImGui.EndTooltip();
                     }
                 }
 

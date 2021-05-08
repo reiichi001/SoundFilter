@@ -39,4 +39,10 @@
     <data name="LoadWarning" xml:space="preserve">
         <value>Due to the way FFXIV's resource loading works, {0} has to hear a sound once before it can filter it after a fresh install or update. Restart your game after installing or updating if this is a problem for you.</value>
     </data>
+    <data name="SettingsAddFilterName" xml:space="preserve">
+        <value>Filter name</value>
+    </data>
+    <data name="SettingsAddPathToFilter" xml:space="preserve">
+        <value>Sound path to filter</value>
+    </data>
 </root>

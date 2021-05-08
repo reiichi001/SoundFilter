@@ -3,6 +3,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin;
+using SoundFilter.Config;
 using SoundFilter.Resources;
 using SoundFilter.Ui;
 

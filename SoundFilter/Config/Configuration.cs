@@ -5,7 +5,7 @@ using Dalamud.Configuration;
 using Dalamud.Plugin;
 using DotNet.Globbing;
 
-namespace SoundFilter {
+namespace SoundFilter.Config {
     [Serializable]
     internal class Configuration : IPluginConfiguration {
         public int Version { get; set; } = 1;
@@ -16,7 +16,7 @@ namespace SoundFilter {
         public bool Enabled = true;
         public bool ShowLog;
         public uint LogEntries = 250;
-        public Dictionary<string, bool> Filtered { get; set; } = new();
+        public Dictionary<string, CustomFilter> Filtered { get; set; } = new();
 
         internal IReadOnlyDictionary<Glob, bool> Globs {
             get {
@@ -30,7 +30,7 @@ namespace SoundFilter {
                         this.CachedGlobs[entry.Key] = glob;
                         return glob;
                     },
-                    entry => entry.Value
+                    entry => entry.Value.Enabled
                 );
             }
         }
