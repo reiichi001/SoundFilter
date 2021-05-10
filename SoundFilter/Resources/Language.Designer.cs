@@ -61,6 +61,33 @@ namespace SoundFilter.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid subcommand..
+        /// </summary>
+        internal static string CommandInvalidSubcommand {
+            get {
+                return ResourceManager.GetString("CommandInvalidSubcommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No such filter..
+        /// </summary>
+        internal static string CommandNoSuchFilter {
+            get {
+                return ResourceManager.GetString("CommandNoSuchFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not enough arguments. Please specify &apos;enable&apos; or &apos;disable&apos; and an optional filter name.
+        /// </summary>
+        internal static string CommandNotEnoughArguments {
+            get {
+                return ResourceManager.GetString("CommandNotEnoughArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Due to the way FFXIV&apos;s resource loading works, {0} has to hear a sound once before it can filter it after a fresh install or update. Restart your game after installing or updating if this is a problem for you..
         /// </summary>
         internal static string LoadWarning {

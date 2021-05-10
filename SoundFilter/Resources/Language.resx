@@ -45,4 +45,13 @@
     <data name="SettingsAddPathToFilter" xml:space="preserve">
         <value>Sound path to filter</value>
     </data>
+    <data name="CommandNotEnoughArguments" xml:space="preserve">
+        <value>Not enough arguments. Please specify 'enable' or 'disable' and an optional filter name</value>
+    </data>
+    <data name="CommandInvalidSubcommand" xml:space="preserve">
+        <value>Invalid subcommand.</value>
+    </data>
+    <data name="CommandNoSuchFilter" xml:space="preserve">
+        <value>No such filter.</value>
+    </data>
 </root>
