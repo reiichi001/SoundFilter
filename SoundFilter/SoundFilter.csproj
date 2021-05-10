@@ -25,7 +25,6 @@
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>Language.Designer.cs</LastGenOutput>
         </EmbeddedResource>
-        <None Remove="Resources\gaya_nosound.scd"/>
         <EmbeddedResource Include="Resources\gaya_nosound.scd"/>
     </ItemGroup>
     <ItemGroup>
