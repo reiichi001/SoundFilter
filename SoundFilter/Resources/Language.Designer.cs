@@ -79,7 +79,7 @@ namespace SoundFilter.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Not enough arguments. Please specify &apos;enable&apos; or &apos;disable&apos; and an optional filter name.
+        ///   Looks up a localized string similar to Not enough arguments..
         /// </summary>
         internal static string CommandNotEnoughArguments {
             get {
@@ -93,6 +93,24 @@ namespace SoundFilter.Resources {
         internal static string LoadWarning {
             get {
                 return ResourceManager.GetString("LoadWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable logging.
+        /// </summary>
+        internal static string LogEnableLogging {
+            get {
+                return ResourceManager.GetString("LogEnableLogging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log filtered.
+        /// </summary>
+        internal static string LogLogFiltered {
+            get {
+                return ResourceManager.GetString("LogLogFiltered", resourceCulture);
             }
         }
         
@@ -124,6 +142,15 @@ namespace SoundFilter.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add filter.
+        /// </summary>
+        internal static string SettingsAddFilter {
+            get {
+                return ResourceManager.GetString("SettingsAddFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Filter name.
         /// </summary>
         internal static string SettingsAddFilterName {
@@ -138,6 +165,15 @@ namespace SoundFilter.Resources {
         internal static string SettingsAddPathToFilter {
             get {
                 return ResourceManager.GetString("SettingsAddPathToFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit filter.
+        /// </summary>
+        internal static string SettingsEditFilter {
+            get {
+                return ResourceManager.GetString("SettingsEditFilter", resourceCulture);
             }
         }
         

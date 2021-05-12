@@ -32,11 +32,19 @@ namespace SoundFilter {
             var split = args.Split(' ');
             if (split.Length < 1) {
                 chat.PrintError($"[{SoundFilterPlugin.Name}] {Language.CommandNotEnoughArguments}");
+                chat.PrintError($"[{SoundFilterPlugin.Name}] /soundfilter log");
+                chat.PrintError($"[{SoundFilterPlugin.Name}] /soundfilter <enable|disable|toggle> [filter name]");
+                return;
+            }
+
+            if (split[0] == "log") {
+                this.Plugin.Config.ShowLog ^= true;
+                this.Plugin.Config.Save();
                 return;
             }
 
             var filterName = split.Length > 1 ? string.Join(" ", split.Skip(1)) : null;
-            var filter = filterName == null ? null : this.Plugin.Config.Filtered.Values.FirstOrDefault(filter => filter.Name == filterName);
+            var filter = filterName == null ? null : this.Plugin.Config.Filters.FirstOrDefault(filter => filter.Name == filterName);
             if (filterName != null && filter == null) {
                 chat.PrintError($"[{SoundFilterPlugin.Name}] {Language.CommandNoSuchFilter}");
                 return;

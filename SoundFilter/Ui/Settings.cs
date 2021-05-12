@@ -1,21 +1,21 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using Dalamud.Interface;
 using ImGuiNET;
-using SoundFilter.Config;
 using SoundFilter.Resources;
 
 namespace SoundFilter.Ui {
     public class Settings : IDisposable {
         private SoundFilterPlugin Plugin { get; }
+        private AddFilter AddFilter { get; }
+        private AddFilter? EditFilter { get; set; }
 
         private bool _showWindow;
-        private string _filterName = string.Empty;
-        private string _soundPath = string.Empty;
+        private int _dragging = -1;
 
         internal Settings(SoundFilterPlugin plugin) {
             this.Plugin = plugin;
+            this.AddFilter = new AddFilter(plugin);
 
             this.Plugin.Interface.UiBuilder.OnOpenConfigUi += this.Toggle;
         }
@@ -31,6 +31,19 @@ namespace SoundFilter.Ui {
         internal void Draw() {
             if (!this._showWindow) {
                 return;
+            }
+
+            if (this.EditFilter != null) {
+                ImGui.SetNextWindowSize(new Vector2(ImGui.GetWindowSize().X, -1));
+                if (ImGui.BeginPopupModal($"{Language.SettingsEditFilter}###edit-filter-modal")) {
+                    if (this.EditFilter.Draw()) {
+                        this.EditFilter = null;
+                    }
+
+                    ImGui.EndPopup();
+                }
+
+                ImGui.OpenPopup("###edit-filter-modal");
             }
 
             ImGui.SetNextWindowSize(new Vector2(500, 450), ImGuiCond.FirstUseEver);
@@ -56,49 +69,80 @@ namespace SoundFilter.Ui {
 
             ImGui.Separator();
 
-            ImGui.TextUnformatted(Language.SettingsAddFilterName);
-            ImGui.InputText("##sound-filter-name", ref this._filterName, 255);
-
-            ImGui.TextUnformatted(Language.SettingsAddPathToFilter);
-            ImGui.InputText("##sound-path", ref this._soundPath, 255);
-            ImGui.SameLine();
-            if (Util.IconButton(FontAwesomeIcon.Plus, "add") && !string.IsNullOrWhiteSpace(this._soundPath) && !string.IsNullOrWhiteSpace(this._filterName)) {
-                this.Plugin.Config.Filtered[this._soundPath] = new CustomFilter {
-                    Name = this._filterName,
-                    Enabled = true,
-                };
-                shouldSave = true;
+            if (ImGui.CollapsingHeader(Language.SettingsAddFilter)) {
+                this.AddFilter.Draw();
             }
 
             ImGui.Separator();
 
             if (ImGui.BeginChild("filtered-sounds")) {
-                var i = 0;
+                int? toRemove = null;
+                (int src, int dst)? drag = null;
+                for (var i = 0; i < this.Plugin.Config.Filters.Count; i++) {
+                    var filter = this.Plugin.Config.Filters[i];
 
-                foreach (var entry in this.Plugin.Config.Filtered.ToList()) {
-                    var glob = entry.Key;
-
-                    if (Util.IconButton(FontAwesomeIcon.Trash, $"delete-{glob}")) {
-                        this.Plugin.Config.Filtered.Remove(glob);
+                    if (Util.IconButton(FontAwesomeIcon.Trash, $"delete-filter-{i}")) {
+                        toRemove = i;
                         shouldSave = true;
                     }
 
                     ImGui.SameLine();
-
-                    if (Util.IconButton(FontAwesomeIcon.Copy, $"copy-{glob}")) {
-                        ImGui.SetClipboardText(glob);
+                    if (Util.IconButton(FontAwesomeIcon.PencilAlt, $"edit-filter-{i}")) {
+                        this.EditFilter = new AddFilter(this.Plugin, filter);
                     }
 
                     ImGui.SameLine();
 
-                    shouldSave |= ImGui.Checkbox($"{entry.Value.Name}##{i}-{glob}", ref entry.Value.Enabled);
-                    if (ImGui.IsItemHovered()) {
-                        ImGui.BeginTooltip();
-                        ImGui.TextUnformatted(glob);
-                        ImGui.EndTooltip();
+                    if (Util.IconButton(FontAwesomeIcon.Copy, $"copy-filter-{i}")) {
+                        ImGui.SetClipboardText(string.Join("\n", filter.Globs));
                     }
 
-                    i += 1;
+                    ImGui.SameLine();
+
+                    shouldSave |= ImGui.Checkbox($"{filter.Name}##{i}", ref filter.Enabled);
+
+                    if (ImGui.IsItemActive() || this._dragging == i) {
+                        this._dragging = i;
+                        var step = 0;
+                        if (ImGui.GetIO().MouseDelta.Y < 0 && ImGui.GetMousePos().Y < ImGui.GetItemRectMin().Y) {
+                            step = -1;
+                        }
+
+                        if (ImGui.GetIO().MouseDelta.Y > 0 && ImGui.GetMousePos().Y > ImGui.GetItemRectMax().Y) {
+                            step = 1;
+                        }
+
+                        if (step != 0) {
+                            drag = (i, i + step);
+                        }
+                    }
+
+                    if (!ImGui.IsItemHovered()) {
+                        continue;
+                    }
+
+                    ImGui.BeginTooltip();
+                    foreach (var glob in filter.Globs) {
+                        ImGui.TextUnformatted(glob);
+                    }
+
+                    ImGui.EndTooltip();
+                }
+
+                if (!ImGui.IsMouseDown(ImGuiMouseButton.Left) && this._dragging != -1) {
+                    this._dragging = -1;
+                    this.Plugin.Config.Save();
+                }
+
+                if (drag != null && drag.Value.dst < this.Plugin.Config.Filters.Count && drag.Value.dst >= 0) {
+                    this._dragging = drag.Value.dst;
+                    var temp = this.Plugin.Config.Filters[drag.Value.src];
+                    this.Plugin.Config.Filters[drag.Value.src] = this.Plugin.Config.Filters[drag.Value.dst];
+                    this.Plugin.Config.Filters[drag.Value.dst] = temp;
+                }
+
+                if (toRemove != null) {
+                    this.Plugin.Config.Filters.RemoveAt(toRemove.Value);
                 }
 
                 ImGui.EndChild();

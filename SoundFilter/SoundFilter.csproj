@@ -19,6 +19,10 @@
             <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\ImGuiScene.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Newtonsoft.Json.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Update="Resources\Language.resx">

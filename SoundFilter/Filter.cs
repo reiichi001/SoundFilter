@@ -159,14 +159,17 @@ namespace SoundFilter {
             path = path.ToLowerInvariant();
             var specificPath = $"{path}/{idx}";
 
-            this.Recent.Enqueue(specificPath);
-            while (this.Recent.Count > this.Plugin.Config.LogEntries) {
-                this.Recent.TryDequeue(out _);
-            }
-
             var shouldFilter = this.Plugin.Config.Globs
                 .Where(entry => entry.Value)
                 .Any(entry => entry.Key.IsMatch(specificPath));
+
+            if (this.Plugin.Config.LogEnabled && (!shouldFilter || this.Plugin.Config.LogFiltered)) {
+                this.Recent.Enqueue(specificPath);
+                while (this.Recent.Count > this.Plugin.Config.LogEntries) {
+                    this.Recent.TryDequeue(out _);
+                }
+            }
+
             if (shouldFilter) {
                 return this.PlaySpecificSoundHook!.Original((long) this.InfoPtr, 0);
             }

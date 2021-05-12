@@ -20,7 +20,7 @@ namespace SoundFilter {
         internal SoundFilterPlugin(DalamudPluginInterface @interface) {
             this.Interface = @interface;
 
-            this.Config = this.Interface.GetPluginConfig() as Configuration ?? new Configuration();
+            this.Config = Migrator.LoadConfiguration(this);
             this.Config.Initialise(this.Interface);
 
             this.Filter = new Filter(this);

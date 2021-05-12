@@ -46,12 +46,24 @@
         <value>Sound path to filter</value>
     </data>
     <data name="CommandNotEnoughArguments" xml:space="preserve">
-        <value>Not enough arguments. Please specify 'enable' or 'disable' and an optional filter name</value>
+        <value>Not enough arguments.</value>
     </data>
     <data name="CommandInvalidSubcommand" xml:space="preserve">
         <value>Invalid subcommand.</value>
     </data>
     <data name="CommandNoSuchFilter" xml:space="preserve">
         <value>No such filter.</value>
+    </data>
+    <data name="SettingsAddFilter" xml:space="preserve">
+        <value>Add filter</value>
+    </data>
+    <data name="LogEnableLogging" xml:space="preserve">
+        <value>Enable logging</value>
+    </data>
+    <data name="LogLogFiltered" xml:space="preserve">
+        <value>Log filtered</value>
+    </data>
+    <data name="SettingsEditFilter" xml:space="preserve">
+        <value>Edit filter</value>
     </data>
 </root>

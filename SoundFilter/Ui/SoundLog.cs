@@ -28,6 +28,16 @@ namespace SoundFilter.Ui {
                 return;
             }
 
+            if (ImGui.Checkbox(Language.LogEnableLogging, ref this.Plugin.Config.LogEnabled)) {
+                this.Plugin.Config.Save();
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Checkbox(Language.LogLogFiltered, ref this.Plugin.Config.LogFiltered)) {
+                this.Plugin.Config.Save();
+            }
+
             ImGui.InputText(Language.LogSearch, ref this._search, 255);
 
             var entries = (int) this.Plugin.Config.LogEntries;
