@@ -44,6 +44,6 @@
         <PackageReference Include="Fody" Version="6.5.1" PrivateAssets="all"/>
         <PackageReference Include="ILMerge.Fody" Version="1.16.0" PrivateAssets="all"/>
         <PackageReference Include="Resourcer.Fody" Version="1.8.0" PrivateAssets="all"/>
-        <PackageReference Include="ResourcesMerge.Fody" Version="1.0.1" PrivateAssets="all"/>
+        <PackageReference Include="ResourcesMerge.Fody" Version="1.0.3" PrivateAssets="all"/>
     </ItemGroup>
 </Project>
