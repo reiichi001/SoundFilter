@@ -68,7 +68,7 @@ namespace SoundFilter.Ui {
                     this._soundPaths.Add(this._newSoundPath);
                 }
 
-                if (this._soundPaths.Count(sound => sound.Length > 0) > 0) {
+                if (this._soundPaths.Count(sound => !string.IsNullOrWhiteSpace(sound)) > 0) {
                     this.Save();
 
                     this._filterName = string.Empty;
