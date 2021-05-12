@@ -63,18 +63,20 @@ namespace SoundFilter.Ui {
                 this._newSoundPath = string.Empty;
             }
 
-            if (Util.IconButton(FontAwesomeIcon.Save, $"save-filter-{this.Id}") && this._soundPaths.Count > 0 && !string.IsNullOrWhiteSpace(this._filterName)) {
+            if (Util.IconButton(FontAwesomeIcon.Save, $"save-filter-{this.Id}") && !string.IsNullOrWhiteSpace(this._filterName)) {
                 if (!string.IsNullOrWhiteSpace(this._newSoundPath)) {
                     this._soundPaths.Add(this._newSoundPath);
                 }
 
-                this.Save();
+                if (this._soundPaths.Count(sound => sound.Length > 0) > 0) {
+                    this.Save();
 
-                this._filterName = string.Empty;
-                this._newSoundPath = string.Empty;
-                this._soundPaths.Clear();
+                    this._filterName = string.Empty;
+                    this._newSoundPath = string.Empty;
+                    this._soundPaths.Clear();
 
-                return true;
+                    return true;
+                }
             }
 
 
@@ -95,6 +97,8 @@ namespace SoundFilter.Ui {
         }
 
         private void Save() {
+            this._soundPaths.RemoveAll(string.IsNullOrWhiteSpace);
+
             if (this.Filter != null) {
                 this.Filter.Name = this._filterName;
                 this.Filter.Globs.Clear();
