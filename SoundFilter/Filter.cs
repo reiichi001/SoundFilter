@@ -12,11 +12,12 @@ namespace SoundFilter {
         private static class Signatures {
             internal const string PlaySpecificSound = "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 33 F6 8B DA 48 8B F9 0F BA E2 0F";
 
-            internal const string GetResourceSync = "E8 ?? ?? 00 00 48 8D 4F ?? 48 89 87 ?? ?? 00 00";
-            internal const string GetResourceAsync = "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
+            internal const string GetResourceSync = "E8 ?? ?? ?? ?? 48 8D 8F ?? ?? ?? ?? 48 89 87 ?? ?? ?? ?? 48 8D 54 24 ??";
+            internal const string GetResourceAsync = "E8 ?? ?? ?? ?? 48 8B D8 EB 07 F0 FF 83 ?? ?? ?? ??";
         }
 
-        private const int ResourceDataPointerOffset = 0xA8;
+        // Updated: 5.55
+        private const int ResourceDataPointerOffset = 0xB0;
 
         #region Delegates
 
