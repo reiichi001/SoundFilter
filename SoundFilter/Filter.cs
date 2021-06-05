@@ -21,6 +21,7 @@ namespace SoundFilter {
 
         // Updated: 5.55
         private const int ResourceDataPointerOffset = 0xB0;
+        private const int MusicManagerStreamingOffset = 0x32;
 
         #region Delegates
 
@@ -66,8 +67,22 @@ namespace SoundFilter {
         }
 
         private bool Streaming {
-            get => *(byte*) (this.MusicManager + 50) > 0;
-            set => *(byte*) (this.MusicManager + 50) = (byte) (value ? 1 : 0);
+            get {
+                var manager = this.MusicManager;
+                if (manager == IntPtr.Zero) {
+                    return false;
+                }
+
+                return *(byte*) (manager + MusicManagerStreamingOffset) > 0;
+            }
+            set {
+                var manager = this.MusicManager;
+                if (manager == IntPtr.Zero) {
+                    return;
+                }
+
+                *(byte*) (manager + MusicManagerStreamingOffset) = (byte) (value ? 1 : 0);
+            }
         }
 
         internal Filter(SoundFilterPlugin plugin) {
