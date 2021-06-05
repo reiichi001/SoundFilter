@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
+using Dalamud.Plugin;
 
 namespace SoundFilter {
     internal unsafe class Filter : IDisposable {
@@ -14,6 +15,8 @@ namespace SoundFilter {
 
             internal const string GetResourceSync = "E8 ?? ?? ?? ?? 48 8D 8F ?? ?? ?? ?? 48 89 87 ?? ?? ?? ?? 48 8D 54 24 ??";
             internal const string GetResourceAsync = "E8 ?? ?? ?? ?? 48 8B D8 EB 07 F0 FF 83 ?? ?? ?? ??";
+
+            internal const string MusicManagerOffset = "48 8B 8E ?? ?? ?? ?? 39 78 20 0F 94 C2 45 33 C0";
         }
 
         // Updated: 5.55
@@ -40,6 +43,7 @@ namespace SoundFilter {
         #endregion
 
         private SoundFilterPlugin Plugin { get; }
+        private bool WasStreamingEnabled { get; }
 
         private Dictionary<IntPtr, string> Scds { get; } = new();
         private Dictionary<IntPtr, string> AsyncScds { get; } = new();
@@ -49,8 +53,28 @@ namespace SoundFilter {
         private IntPtr NoSoundPtr { get; }
         private IntPtr InfoPtr { get; }
 
+        private IntPtr MusicManager {
+            get {
+                if (!this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.MusicManagerOffset, out var instructionPtr)) {
+                    PluginLog.LogWarning("Could not find music manager");
+                    return IntPtr.Zero;
+                }
+
+                var offset = *(int*) (instructionPtr + 3);
+                return *(IntPtr*) (this.Plugin.Interface.Framework.Address.BaseAddress + offset);
+            }
+        }
+
+        private bool Streaming {
+            get => *(byte*) (this.MusicManager + 50) > 0;
+            set => *(byte*) (this.MusicManager + 50) = (byte) (value ? 1 : 0);
+        }
+
         internal Filter(SoundFilterPlugin plugin) {
             this.Plugin = plugin;
+
+            this.WasStreamingEnabled = this.Streaming;
+            this.Streaming = false;
 
             var (noSoundPtr, infoPtr) = SetUpNoSound();
             this.NoSoundPtr = noSoundPtr;
@@ -117,6 +141,8 @@ namespace SoundFilter {
 
             Marshal.FreeHGlobal(this.InfoPtr);
             Marshal.FreeHGlobal(this.NoSoundPtr);
+
+            this.Streaming = this.WasStreamingEnabled;
         }
 
         [HandleProcessCorruptedStateExceptions]
