@@ -1,9 +1,13 @@
 name: Sound Filter
 author: ascclemens
+punchline: Filter any game sound.
 description: |-
   Filters any sound or set of sounds from the game.
 
   - Remove a battle sound effect you don't like
   - Remove specific emote sounds
   - Remove specific background music
+
+  Icons: filter by Kirby Wu from the Noun Project
+  and Sound by Gregor Cresnar from the Noun Project
 repo_url: https://git.sr.ht/jkcclemens/SoundFilter

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Globalization;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 using SoundFilter.Resources;
 
 namespace SoundFilter.Ui {
@@ -17,18 +17,19 @@ namespace SoundFilter.Ui {
             this.Settings = new Settings(this.Plugin);
             this.SoundLog = new SoundLog(this.Plugin);
 
-            this.Plugin.Interface.UiBuilder.OnBuildUi += this.Draw;
-            this.Plugin.Interface.OnLanguageChanged += this.ConfigureLanguage;
+            this.Plugin.Interface.UiBuilder.Draw += this.Draw;
+            this.Plugin.Interface.LanguageChanged += this.ConfigureLanguage;
         }
 
         public void Dispose() {
-            this.Plugin.Interface.OnLanguageChanged -= this.ConfigureLanguage;
-            this.Plugin.Interface.UiBuilder.OnBuildUi -= this.Draw;
+            this.Plugin.Interface.LanguageChanged -= this.ConfigureLanguage;
+            this.Plugin.Interface.UiBuilder.Draw -= this.Draw;
 
             this.Settings.Dispose();
         }
 
         private void ConfigureLanguage(string? langCode = null) {
+            // ReSharper disable once ConstantNullCoalescingCondition
             langCode ??= this.Plugin.Interface.UiLanguage ?? "en";
             try {
                 Language.Culture = new CultureInfo(langCode);

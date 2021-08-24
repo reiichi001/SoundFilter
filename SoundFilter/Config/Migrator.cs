@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -22,9 +22,9 @@ namespace SoundFilter.Config {
         private static void MigrateV1(JObject old) {
             var filters = new List<CustomFilter>();
 
-            WithEachObject(old["Filtered"], (glob, filter) => {
-                var name = filter["Name"].Value<string>();
-                var enabled = filter["Enabled"].Value<bool>();
+            WithEachObject(old["Filtered"]!, (glob, filter) => {
+                var name = filter["Name"]!.Value<string>()!;
+                var enabled = filter["Enabled"]!.Value<bool>();
                 filters.Add(new CustomFilter {
                     Name = name,
                     Enabled = enabled,
@@ -48,7 +48,7 @@ namespace SoundFilter.Config {
                 goto DefaultConfiguration;
             }
 
-            var config = JsonConvert.DeserializeObject<JObject>(text);
+            var config = JsonConvert.DeserializeObject<JObject>(text)!;
 
             int GetVersion() {
                 if (config.TryGetValue("Version", out var token)) {
@@ -78,7 +78,7 @@ namespace SoundFilter.Config {
             }
 
             if (version == Configuration.LatestVersion) {
-                return config.ToObject<Configuration>();
+                return config.ToObject<Configuration>()!;
             }
 
             DefaultConfiguration:

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   data-name="Layer 1"
+   viewBox="0 0 100 100"
+   x="0px"
+   y="0px"
+   version="1.1"
+   id="svg10"
+   sodipodi:docname="icon.svg"
+   width="100"
+   height="100"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   inkscape:export-filename="D:\code\SoundFilter\icon.png"
+   inkscape:export-xdpi="491.51999"
+   inkscape:export-ydpi="491.51999"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs14">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient930">
+      <stop
+         style="stop-color:#850000;stop-opacity:1"
+         offset="0"
+         id="stop926" />
+      <stop
+         style="stop-color:#003aaf;stop-opacity:1"
+         offset="1"
+         id="stop928" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient930"
+       id="linearGradient932"
+       x1="27.391356"
+       y1="26.969402"
+       x2="72.349539"
+       y2="26.969402"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0549846,0,0,1.0549846,-2.6125575,-4.2766045)" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview12"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     showgrid="false"
+     inkscape:zoom="6.656"
+     inkscape:cx="49.954928"
+     inkscape:cy="51.307091"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1592"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2" />
+  <title
+     id="title2">Artboard 227</title>
+  <metadata
+     id="metadata831">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Artboard 227</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Sound"
+     style="display:inline">
+    <path
+       d="m 71.738792,18.246787 h -1.976304 a 5.9289141,5.9289141 0 0 0 -5.928914,5.928915 v 7.905218 a 1.9763047,1.9763047 0 0 1 -3.952609,0 V 8.3652634 a 5.928915,5.928915 0 0 0 -11.85783,0 V 39.986139 a 1.9763047,1.9763047 0 0 1 -3.952608,0 V 16.270482 a 5.9289141,5.9289141 0 0 0 -11.857827,0 v 7.90522 a 1.9763047,1.9763047 0 0 1 -1.976307,1.976304 h -1.976302 a 1.9763047,1.9763047 0 0 0 0,3.952608 h 1.976302 a 5.9289141,5.9289141 0 0 0 5.928915,-5.928912 v -7.90522 a 1.9763047,1.9763047 0 0 1 3.952609,0 v 23.715657 a 5.9289147,5.9289147 0 0 0 11.857829,0 V 8.3652634 a 1.976305,1.976305 0 0 1 3.95261,0 V 32.08092 a 5.9289141,5.9289141 0 0 0 11.857827,0 v -7.905218 a 1.9763047,1.9763047 0 0 1 1.976305,-1.976305 h 1.976304 a 1.976305,1.976305 0 0 0 0,-3.95261 z"
+       id="path4"
+       style="fill:url(#linearGradient932);fill-opacity:1;stroke-width:0.494075" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Filter">
+    <polygon
+       points="5.2,14.9 42.6,52.3 42.6,95 57.2,82.4 57.2,52.3 94.7,14.9 94.7,5 5.2,5 "
+       id="polygon2"
+       transform="matrix(0.74854882,0,0,0.74854882,12.609986,26.451514)"
+       style="fill:#858585;fill-opacity:1" />
+  </g>
+</svg>

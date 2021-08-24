@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 
 namespace SoundFilter {
     internal unsafe class Filter : IDisposable {
@@ -56,13 +56,13 @@ namespace SoundFilter {
 
         private IntPtr MusicManager {
             get {
-                if (!this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.MusicManagerOffset, out var instructionPtr)) {
+                if (!this.Plugin.SigScanner.TryScanText(Signatures.MusicManagerOffset, out var instructionPtr)) {
                     PluginLog.LogWarning("Could not find music manager");
                     return IntPtr.Zero;
                 }
 
                 var offset = *(int*) (instructionPtr + 3);
-                return *(IntPtr*) (this.Plugin.Interface.Framework.Address.BaseAddress + offset);
+                return *(IntPtr*) (this.Plugin.Framework.Address.BaseAddress + offset);
             }
         }
 
@@ -126,16 +126,16 @@ namespace SoundFilter {
         }
 
         internal void Enable() {
-            if (this.PlaySpecificSoundHook == null && this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.PlaySpecificSound, out var playPtr)) {
-                this.PlaySpecificSoundHook = new Hook<PlaySpecificSoundDelegate>(playPtr, new PlaySpecificSoundDelegate(this.PlaySpecificSoundDetour));
+            if (this.PlaySpecificSoundHook == null && this.Plugin.SigScanner.TryScanText(Signatures.PlaySpecificSound, out var playPtr)) {
+                this.PlaySpecificSoundHook = new Hook<PlaySpecificSoundDelegate>(playPtr, this.PlaySpecificSoundDetour);
             }
 
-            if (this.GetResourceSyncHook == null && this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.GetResourceSync, out var syncPtr)) {
-                this.GetResourceSyncHook = new Hook<GetResourceSyncPrototype>(syncPtr, new GetResourceSyncPrototype(this.GetResourceSyncDetour));
+            if (this.GetResourceSyncHook == null && this.Plugin.SigScanner.TryScanText(Signatures.GetResourceSync, out var syncPtr)) {
+                this.GetResourceSyncHook = new Hook<GetResourceSyncPrototype>(syncPtr, this.GetResourceSyncDetour);
             }
 
-            if (this.GetResourceAsyncHook == null && this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.GetResourceAsync, out var asyncPtr)) {
-                this.GetResourceAsyncHook = new Hook<GetResourceAsyncPrototype>(asyncPtr, new GetResourceAsyncPrototype(this.GetResourceAsyncDetour));
+            if (this.GetResourceAsyncHook == null && this.Plugin.SigScanner.TryScanText(Signatures.GetResourceAsync, out var asyncPtr)) {
+                this.GetResourceAsyncHook = new Hook<GetResourceAsyncPrototype>(asyncPtr, this.GetResourceAsyncDetour);
             }
 
             this.PlaySpecificSoundHook?.Enable();
@@ -147,6 +147,20 @@ namespace SoundFilter {
             this.PlaySpecificSoundHook?.Disable();
             this.GetResourceSyncHook?.Disable();
             this.GetResourceAsyncHook?.Disable();
+        }
+
+        internal void Toggle(bool save = true) {
+            if (this.Plugin.Config.Enabled) {
+                this.Disable();
+            } else {
+                this.Enable();
+            }
+
+            this.Plugin.Config.Enabled ^= true;
+
+            if (save) {
+                this.Plugin.Config.Save();
+            }
         }
 
         public void Dispose() {

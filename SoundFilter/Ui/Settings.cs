@@ -17,14 +17,14 @@ namespace SoundFilter.Ui {
             this.Plugin = plugin;
             this.AddFilter = new AddFilter(plugin);
 
-            this.Plugin.Interface.UiBuilder.OnOpenConfigUi += this.Toggle;
+            this.Plugin.Interface.UiBuilder.OpenConfigUi += this.Toggle;
         }
 
         public void Dispose() {
-            this.Plugin.Interface.UiBuilder.OnOpenConfigUi -= this.Toggle;
+            this.Plugin.Interface.UiBuilder.OpenConfigUi -= this.Toggle;
         }
 
-        internal void Toggle(object? sender = null, object? args = null) {
+        internal void Toggle() {
             this._showWindow = !this._showWindow;
         }
 
@@ -48,7 +48,7 @@ namespace SoundFilter.Ui {
 
             ImGui.SetNextWindowSize(new Vector2(500, 450), ImGuiCond.FirstUseEver);
 
-            var windowTitle = string.Format(Language.SettingsWindowTitle, SoundFilterPlugin.Name);
+            var windowTitle = string.Format(Language.SettingsWindowTitle, this.Plugin.Name);
             if (!ImGui.Begin($"{windowTitle}###soundfilter-settings", ref this._showWindow)) {
                 ImGui.End();
                 return;
