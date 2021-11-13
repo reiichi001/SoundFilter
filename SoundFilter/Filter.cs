@@ -3,18 +3,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.System.Resource.Handle;
 
 namespace SoundFilter {
     internal unsafe class Filter : IDisposable {
         private static class Signatures {
             internal const string PlaySpecificSound = "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 33 F6 8B DA 48 8B F9 0F BA E2 0F";
 
-            internal const string GetResourceSync = "E8 ?? ?? ?? ?? 48 8D 8F ?? ?? ?? ?? 48 89 87 ?? ?? ?? ?? 48 8D 54 24 ??";
-            internal const string GetResourceAsync = "E8 ?? ?? ?? ?? 48 8B D8 EB 07 F0 FF 83 ?? ?? ?? ??";
+            internal const string GetResourceSync = "E8 ?? ?? ?? ?? 48 8D 8F ?? ?? ?? ?? 48 89 87 ?? ?? ?? ?? 48 8D 54 24";
+            internal const string GetResourceAsync = "E8 ?? ?? ?? ?? 48 8B D8 EB 07 F0 FF 83";
+            internal const string LoadSoundFile = "E8 ?? ?? ?? ?? 48 85 C0 75 04 B0 F6";
 
             internal const string MusicManagerOffset = "48 8B 8E ?? ?? ?? ?? 39 78 20 0F 94 C2 45 33 C0";
         }
@@ -31,6 +32,8 @@ namespace SoundFilter {
 
         private delegate void* GetResourceAsyncPrototype(IntPtr pFileManager, uint* pCategoryId, char* pResourceType, uint* pResourceHash, char* pPath, void* pUnknown, bool isUnknown);
 
+        private delegate IntPtr LoadSoundFileDelegate(IntPtr resourceHandle, uint a2);
+
         #endregion
 
         #region Hooks
@@ -41,13 +44,14 @@ namespace SoundFilter {
 
         private Hook<GetResourceAsyncPrototype>? GetResourceAsyncHook { get; set; }
 
+        private Hook<LoadSoundFileDelegate>? LoadSoundFileHook { get; set; }
+
         #endregion
 
         private SoundFilterPlugin Plugin { get; }
         private bool WasStreamingEnabled { get; }
 
         private Dictionary<IntPtr, string> Scds { get; } = new();
-        private Dictionary<IntPtr, string> AsyncScds { get; } = new();
 
         internal ConcurrentQueue<string> Recent { get; } = new();
 
@@ -138,33 +142,26 @@ namespace SoundFilter {
                 this.GetResourceAsyncHook = new Hook<GetResourceAsyncPrototype>(asyncPtr, this.GetResourceAsyncDetour);
             }
 
+            if (this.LoadSoundFileHook == null && this.Plugin.SigScanner.TryScanText(Signatures.LoadSoundFile, out var soundPtr)) {
+                this.LoadSoundFileHook = new Hook<LoadSoundFileDelegate>(soundPtr, this.LoadSoundFileDetour);
+            }
+
             this.PlaySpecificSoundHook?.Enable();
+            this.LoadSoundFileHook?.Enable();
             this.GetResourceSyncHook?.Enable();
             this.GetResourceAsyncHook?.Enable();
         }
 
         internal void Disable() {
             this.PlaySpecificSoundHook?.Disable();
+            this.LoadSoundFileHook?.Disable();
             this.GetResourceSyncHook?.Disable();
             this.GetResourceAsyncHook?.Disable();
         }
 
-        internal void Toggle(bool save = true) {
-            if (this.Plugin.Config.Enabled) {
-                this.Disable();
-            } else {
-                this.Enable();
-            }
-
-            this.Plugin.Config.Enabled ^= true;
-
-            if (save) {
-                this.Plugin.Config.Save();
-            }
-        }
-
         public void Dispose() {
             this.PlaySpecificSoundHook?.Dispose();
+            this.LoadSoundFileHook?.Dispose();
             this.GetResourceSyncHook?.Dispose();
             this.GetResourceAsyncHook?.Dispose();
 
@@ -174,42 +171,32 @@ namespace SoundFilter {
             this.Streaming = this.WasStreamingEnabled;
         }
 
-        [HandleProcessCorruptedStateExceptions]
         private void* PlaySpecificSoundDetour(long a1, int idx) {
+            try {
+                var shouldFilter = this.PlaySpecificSoundDetourInner(a1, idx);
+                if (shouldFilter) {
+                    a1 = (long) this.InfoPtr;
+                }
+            } catch (Exception ex) {
+                PluginLog.LogError(ex, "Error in PlaySpecificSoundDetour");
+            }
+
+            return this.PlaySpecificSoundHook!.Original(a1, idx);
+        }
+
+        private bool PlaySpecificSoundDetourInner(long a1, int idx) {
             if (a1 == 0) {
-                goto Original;
+                return false;
             }
 
             var scdData = *(byte**) (a1 + 8);
             if (scdData == null) {
-                goto Original;
+                return false;
             }
 
             // check cached scds for path
-            this.Scds.TryGetValue((IntPtr) scdData, out var path);
-
-            // if the scd wasn't cached, look at the async lookups
-            if (path == null) {
-                foreach (var entry in this.AsyncScds.ToList()) {
-                    try {
-                        var dataPtr = Marshal.ReadIntPtr(entry.Key + ResourceDataPointerOffset);
-                        if (dataPtr != (IntPtr) scdData) {
-                            continue;
-                        }
-
-                        this.Scds[dataPtr] = entry.Value;
-                        this.AsyncScds.Remove(entry.Key);
-                        path = entry.Value;
-                    } catch (Exception) {
-                        // remove any async pointers that had errors while reading
-                        this.AsyncScds.Remove(entry.Key);
-                    }
-                }
-
-                // if we still couldn't find a path for this pointer, give up
-                if (path == null) {
-                    goto Original;
-                }
+            if (!this.Scds.TryGetValue((IntPtr) scdData, out var path)) {
+                return false;
             }
 
             path = path.ToLowerInvariant();
@@ -226,12 +213,7 @@ namespace SoundFilter {
                 }
             }
 
-            if (shouldFilter) {
-                return this.PlaySpecificSoundHook!.Original((long) this.InfoPtr, 0);
-            }
-
-            Original:
-            return this.PlaySpecificSoundHook!.Original(a1, idx);
+            return shouldFilter;
         }
 
         private void* GetResourceSyncDetour(IntPtr pFileManager, uint* pCategoryId, char* pResourceType, uint* pResourceHash, char* pPath, void* pUnknown) {
@@ -251,9 +233,6 @@ namespace SoundFilter {
                 // if we immediately have the scd data, cache it, otherwise add it to a waiting list to hopefully be picked up at sound play time
                 if (scdData != IntPtr.Zero) {
                     this.Scds[scdData] = path;
-                } else {
-                    // only add to the waiting list if we haven't resolved this path yet
-                    this.AsyncScds[(IntPtr) ret] = path;
                 }
             }
 
@@ -264,6 +243,23 @@ namespace SoundFilter {
             return isSync
                 ? this.GetResourceSyncHook!.Original(pFileManager, pCategoryId, pResourceType, pResourceHash, pPath, pUnknown)
                 : this.GetResourceAsyncHook!.Original(pFileManager, pCategoryId, pResourceType, pResourceHash, pPath, pUnknown, isUnknown);
+        }
+
+        private IntPtr LoadSoundFileDetour(IntPtr resourceHandle, uint a2) {
+            var ret = this.LoadSoundFileHook!.Original(resourceHandle, a2);
+
+            try {
+                var handle = (ResourceHandle*) resourceHandle;
+                var name = handle->FileName.ToString();
+                if (name.EndsWith(".scd")) {
+                    var dataPtr = Marshal.ReadIntPtr(resourceHandle + ResourceDataPointerOffset);
+                    this.Scds[dataPtr] = name;
+                }
+            } catch (Exception ex) {
+                PluginLog.LogError(ex, "Error in LoadSoundFileDetour");
+            }
+
+            return ret;
         }
     }
 }
