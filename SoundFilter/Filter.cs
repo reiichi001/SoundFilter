@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -51,7 +50,7 @@ namespace SoundFilter {
         private SoundFilterPlugin Plugin { get; }
         private bool WasStreamingEnabled { get; }
 
-        private Dictionary<IntPtr, string> Scds { get; } = new();
+        private ConcurrentDictionary<IntPtr, string> Scds { get; } = new();
 
         internal ConcurrentQueue<string> Recent { get; } = new();
 
