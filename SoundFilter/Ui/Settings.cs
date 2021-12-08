@@ -136,6 +136,7 @@ namespace SoundFilter.Ui {
 
                 if (drag != null && drag.Value.dst < this.Plugin.Config.Filters.Count && drag.Value.dst >= 0) {
                     this._dragging = drag.Value.dst;
+                    // ReSharper disable once SwapViaDeconstruction
                     var temp = this.Plugin.Config.Filters[drag.Value.src];
                     this.Plugin.Config.Filters[drag.Value.src] = this.Plugin.Config.Filters[drag.Value.dst];
                     this.Plugin.Config.Filters[drag.Value.dst] = temp;

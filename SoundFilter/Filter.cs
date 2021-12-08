@@ -121,9 +121,9 @@ namespace SoundFilter {
             // write a pointer to the empty scd
             Marshal.WriteIntPtr(infoPtr + 8, noSoundPtr);
             // specify where the game should offset from for the sound index
-            Marshal.WriteInt32(infoPtr + 0x90, 0x54);
+            Marshal.WriteInt32(infoPtr + 0x88, 0x54);
             // specify the number of sounds in the file
-            Marshal.WriteInt16(infoPtr + 0x9C, 0);
+            Marshal.WriteInt16(infoPtr + 0x94, 0);
 
             return (noSoundPtr, infoPtr);
         }
@@ -175,6 +175,7 @@ namespace SoundFilter {
                 var shouldFilter = this.PlaySpecificSoundDetourInner(a1, idx);
                 if (shouldFilter) {
                     a1 = (long) this.InfoPtr;
+                    idx = 0;
                 }
             } catch (Exception ex) {
                 PluginLog.LogError(ex, "Error in PlaySpecificSoundDetour");
