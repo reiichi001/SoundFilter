@@ -16,7 +16,7 @@ namespace SoundFilter {
             internal const string GetResourceAsync = "E8 ?? ?? ?? ?? 48 8B D8 EB 07 F0 FF 83";
             internal const string LoadSoundFile = "E8 ?? ?? ?? ?? 48 85 C0 75 04 B0 F6";
 
-            internal const string MusicManagerOffset = "48 8B 8E ?? ?? ?? ?? 39 78 20 0F 94 C2 45 33 C0";
+            internal const string MusicManagerOffset = "48 89 87 ?? ?? ?? ?? 49 8B CF E8 ?? ?? ?? ?? 48 8B 8F";
         }
 
         // Updated: 5.55
