@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.Resource.Handle;
 
 namespace SoundFilter {
@@ -65,7 +66,7 @@ namespace SoundFilter {
                 }
 
                 var offset = *(int*) (instructionPtr + 3);
-                return *(IntPtr*) (this.Plugin.Framework.Address.BaseAddress + offset);
+                return *(IntPtr*) ((IntPtr) Framework.Instance() + offset);
             }
         }
 
@@ -130,19 +131,19 @@ namespace SoundFilter {
 
         internal void Enable() {
             if (this.PlaySpecificSoundHook == null && this.Plugin.SigScanner.TryScanText(Signatures.PlaySpecificSound, out var playPtr)) {
-                this.PlaySpecificSoundHook = new Hook<PlaySpecificSoundDelegate>(playPtr, this.PlaySpecificSoundDetour);
+                this.PlaySpecificSoundHook = Hook<PlaySpecificSoundDelegate>.FromAddress(playPtr, this.PlaySpecificSoundDetour);
             }
 
             if (this.GetResourceSyncHook == null && this.Plugin.SigScanner.TryScanText(Signatures.GetResourceSync, out var syncPtr)) {
-                this.GetResourceSyncHook = new Hook<GetResourceSyncPrototype>(syncPtr, this.GetResourceSyncDetour);
+                this.GetResourceSyncHook = Hook<GetResourceSyncPrototype>.FromAddress(syncPtr, this.GetResourceSyncDetour);
             }
 
             if (this.GetResourceAsyncHook == null && this.Plugin.SigScanner.TryScanText(Signatures.GetResourceAsync, out var asyncPtr)) {
-                this.GetResourceAsyncHook = new Hook<GetResourceAsyncPrototype>(asyncPtr, this.GetResourceAsyncDetour);
+                this.GetResourceAsyncHook = Hook<GetResourceAsyncPrototype>.FromAddress(asyncPtr, this.GetResourceAsyncDetour);
             }
 
             if (this.LoadSoundFileHook == null && this.Plugin.SigScanner.TryScanText(Signatures.LoadSoundFile, out var soundPtr)) {
-                this.LoadSoundFileHook = new Hook<LoadSoundFileDelegate>(soundPtr, this.LoadSoundFileDetour);
+                this.LoadSoundFileHook = Hook<LoadSoundFileDelegate>.FromAddress(soundPtr, this.LoadSoundFileDetour);
             }
 
             this.PlaySpecificSoundHook?.Enable();
