@@ -23,7 +23,6 @@ namespace SoundFilter.Ui {
             ImGui.SetNextWindowSize(new Vector2(500, 450), ImGuiCond.FirstUseEver);
 
             if (!ImGui.Begin(Language.LogWindowTitle, ref this.Plugin.Config.ShowLog)) {
-                this.Plugin.Config.Save();
                 ImGui.End();
                 return;
             }
@@ -67,6 +66,10 @@ namespace SoundFilter.Ui {
                 ImGui.EndChild();
             }
 
+            // god disabled this frame
+            if (!this.Plugin.Config.ShowLog) {
+                this.Plugin.Config.Save();
+            }
 
             ImGui.End();
         }
