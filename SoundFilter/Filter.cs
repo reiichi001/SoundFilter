@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.Resource.Handle;
 
@@ -48,7 +47,7 @@ namespace SoundFilter {
 
         #endregion
 
-        private SoundFilterPlugin Plugin { get; }
+        private Plugin Plugin { get; }
         private bool WasStreamingEnabled { get; }
 
         private ConcurrentDictionary<IntPtr, string> Scds { get; } = new();
@@ -61,7 +60,7 @@ namespace SoundFilter {
         private IntPtr MusicManager {
             get {
                 if (!this.Plugin.SigScanner.TryScanText(Signatures.MusicManagerOffset, out var instructionPtr)) {
-                    PluginLog.LogWarning("Could not find music manager");
+                    Plugin.Log.Warning("Could not find music manager");
                     return IntPtr.Zero;
                 }
 
@@ -89,7 +88,7 @@ namespace SoundFilter {
             }
         }
 
-        internal Filter(SoundFilterPlugin plugin) {
+        internal Filter(Plugin plugin) {
             this.Plugin = plugin;
 
             this.WasStreamingEnabled = this.Streaming;
@@ -131,19 +130,19 @@ namespace SoundFilter {
 
         internal void Enable() {
             if (this.PlaySpecificSoundHook == null && this.Plugin.SigScanner.TryScanText(Signatures.PlaySpecificSound, out var playPtr)) {
-                this.PlaySpecificSoundHook = Hook<PlaySpecificSoundDelegate>.FromAddress(playPtr, this.PlaySpecificSoundDetour);
+                this.PlaySpecificSoundHook = this.Plugin.GameInteropProvider.HookFromAddress<PlaySpecificSoundDelegate>(playPtr, this.PlaySpecificSoundDetour);
             }
 
             if (this.GetResourceSyncHook == null && this.Plugin.SigScanner.TryScanText(Signatures.GetResourceSync, out var syncPtr)) {
-                this.GetResourceSyncHook = Hook<GetResourceSyncPrototype>.FromAddress(syncPtr, this.GetResourceSyncDetour);
+                this.GetResourceSyncHook = this.Plugin.GameInteropProvider.HookFromAddress<GetResourceSyncPrototype>(syncPtr, this.GetResourceSyncDetour);
             }
 
             if (this.GetResourceAsyncHook == null && this.Plugin.SigScanner.TryScanText(Signatures.GetResourceAsync, out var asyncPtr)) {
-                this.GetResourceAsyncHook = Hook<GetResourceAsyncPrototype>.FromAddress(asyncPtr, this.GetResourceAsyncDetour);
+                this.GetResourceAsyncHook = this.Plugin.GameInteropProvider.HookFromAddress<GetResourceAsyncPrototype>(asyncPtr, this.GetResourceAsyncDetour);
             }
 
             if (this.LoadSoundFileHook == null && this.Plugin.SigScanner.TryScanText(Signatures.LoadSoundFile, out var soundPtr)) {
-                this.LoadSoundFileHook = Hook<LoadSoundFileDelegate>.FromAddress(soundPtr, this.LoadSoundFileDetour);
+                this.LoadSoundFileHook = this.Plugin.GameInteropProvider.HookFromAddress<LoadSoundFileDelegate>(soundPtr, this.LoadSoundFileDetour);
             }
 
             this.PlaySpecificSoundHook?.Enable();
@@ -179,7 +178,7 @@ namespace SoundFilter {
                     idx = 0;
                 }
             } catch (Exception ex) {
-                PluginLog.LogError(ex, "Error in PlaySpecificSoundDetour");
+                Plugin.Log.Error(ex, "Error in PlaySpecificSoundDetour");
             }
 
             return this.PlaySpecificSoundHook!.Original(a1, idx);
@@ -257,7 +256,7 @@ namespace SoundFilter {
                     this.Scds[dataPtr] = name;
                 }
             } catch (Exception ex) {
-                PluginLog.LogError(ex, "Error in LoadSoundFileDetour");
+                Plugin.Log.Error(ex, "Error in LoadSoundFileDetour");
             }
 
             return ret;

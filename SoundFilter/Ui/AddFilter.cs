@@ -9,19 +9,19 @@ using SoundFilter.Resources;
 namespace SoundFilter.Ui {
     internal class AddFilter {
         private Guid Id { get; } = Guid.NewGuid();
-        private SoundFilterPlugin Plugin { get; }
+        private Plugin Plugin { get; }
         private CustomFilter? Filter { get; }
 
         private string _filterName = string.Empty;
         private string _newSoundPath = string.Empty;
         private readonly List<string> _soundPaths = new();
 
-        internal AddFilter(SoundFilterPlugin plugin) {
+        internal AddFilter(Plugin plugin) {
             this.Plugin = plugin;
             this.Filter = null;
         }
 
-        internal AddFilter(SoundFilterPlugin plugin, CustomFilter filter) {
+        internal AddFilter(Plugin plugin, CustomFilter filter) {
             this.Plugin = plugin;
             this.Filter = filter;
 

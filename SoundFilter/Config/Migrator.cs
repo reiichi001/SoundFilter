@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Dalamud.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -38,7 +37,7 @@ namespace SoundFilter.Config {
             old["Version"] = 2;
         }
 
-        public static Configuration LoadConfiguration(SoundFilterPlugin plugin) {
+        public static Configuration LoadConfiguration(Plugin plugin) {
             var fileInfo = plugin.Interface.ConfigFile;
             var text = fileInfo.Exists
                 ? File.ReadAllText(fileInfo.FullName)
@@ -70,7 +69,7 @@ namespace SoundFilter.Config {
                         MigrateV1(config);
                         break;
                     default:
-                        PluginLog.Warning($"Tried to migrate from an unknown version: {version}");
+                        Plugin.Log.Warning($"Tried to migrate from an unknown version: {version}");
                         goto DefaultConfiguration;
                 }
 

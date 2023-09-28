@@ -7,13 +7,13 @@ namespace SoundFilter {
     internal class Commands : IDisposable {
         private const string Name = "/soundfilter";
 
-        private SoundFilterPlugin Plugin { get; }
+        private Plugin Plugin { get; }
 
-        public Commands(SoundFilterPlugin plugin) {
+        public Commands(Plugin plugin) {
             this.Plugin = plugin;
 
             this.Plugin.CommandManager.AddHandler(Name, new CommandInfo(this.OnCommand) {
-                HelpMessage = $"Toggle the {this.Plugin.Name} config",
+                HelpMessage = $"Toggle the {Plugin.Name} config",
             });
         }
 
@@ -31,9 +31,9 @@ namespace SoundFilter {
 
             var split = args.Split(' ');
             if (split.Length < 1) {
-                chat.PrintError($"[{this.Plugin.Name}] {Language.CommandNotEnoughArguments}");
-                chat.PrintError($"[{this.Plugin.Name}] /soundfilter log");
-                chat.PrintError($"[{this.Plugin.Name}] /soundfilter <enable|disable|toggle> [filter name]");
+                chat.PrintError($"[{Plugin.Name}] {Language.CommandNotEnoughArguments}");
+                chat.PrintError($"[{Plugin.Name}] /soundfilter log");
+                chat.PrintError($"[{Plugin.Name}] /soundfilter <enable|disable|toggle> [filter name]");
                 return;
             }
 
@@ -46,7 +46,7 @@ namespace SoundFilter {
             var filterName = split.Length > 1 ? string.Join(" ", split.Skip(1)) : null;
             var filter = filterName == null ? null : this.Plugin.Config.Filters.FirstOrDefault(filter => filter.Name == filterName);
             if (filterName != null && filter == null) {
-                chat.PrintError($"[{this.Plugin.Name}] {Language.CommandNoSuchFilter}");
+                chat.PrintError($"[{Plugin.Name}] {Language.CommandNoSuchFilter}");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace SoundFilter {
                 _ => null,
             };
             if (enabled == null) {
-                chat.PrintError($"[{this.Plugin.Name}] {Language.CommandInvalidSubcommand}");
+                chat.PrintError($"[{Plugin.Name}] {Language.CommandInvalidSubcommand}");
                 return;
             }
 

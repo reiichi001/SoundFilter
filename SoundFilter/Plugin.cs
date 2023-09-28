@@ -1,41 +1,46 @@
 ﻿using Dalamud.Game;
-using Dalamud.Game.Command;
-using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.IoC;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using SoundFilter.Config;
 using SoundFilter.Resources;
 using SoundFilter.Ui;
 
 namespace SoundFilter {
     // ReSharper disable once ClassNeverInstantiated.Global
-    internal class SoundFilterPlugin : IDalamudPlugin {
-        public string Name => "Sound Filter";
+    internal class Plugin : IDalamudPlugin {
+        public static string Name => "Sound Filter";
+
+        [PluginService]
+        internal static IPluginLog Log { get; private set; } = null!;
 
         [PluginService]
         internal DalamudPluginInterface Interface { get; init; } = null!;
 
         [PluginService]
-        internal ChatGui ChatGui { get; init; } = null!;
+        internal IChatGui ChatGui { get; init; } = null!;
 
         [PluginService]
-        internal CommandManager CommandManager { get; init; } = null!;
+        internal ICommandManager CommandManager { get; init; } = null!;
 
         [PluginService]
-        internal Framework Framework { get; init; } = null!;
+        internal IFramework Framework { get; init; } = null!;
 
         [PluginService]
-        internal SigScanner SigScanner { get; init; } = null!;
+        internal ISigScanner SigScanner { get; init; } = null!;
+
+        [PluginService]
+        internal IGameInteropProvider GameInteropProvider { get; init; } = null!;
 
         internal Configuration Config { get; }
         internal Filter Filter { get; }
         internal PluginUi Ui { get; }
         private Commands Commands { get; }
 
-        public SoundFilterPlugin() {
+        public Plugin() {
             this.Config = Migrator.LoadConfiguration(this);
             this.Config.Initialise(this.Interface);
 
@@ -51,12 +56,12 @@ namespace SoundFilter {
                 return;
             }
 
-            var message = string.Format(Language.LoadWarning, this.Name);
-            this.ChatGui.PrintChat(new XivChatEntry {
-                Name = this.Name,
+            var message = string.Format(Language.LoadWarning, Name);
+            this.ChatGui.Print(new XivChatEntry {
+                Name = Name,
                 Message = new SeString(
                     new UIForegroundPayload(502),
-                    new TextPayload($"[{this.Name}] {message}"),
+                    new TextPayload($"[{Name}] {message}"),
                     new UIForegroundPayload(0)
                 ),
             });

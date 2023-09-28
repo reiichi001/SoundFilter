@@ -7,11 +7,11 @@ using SoundFilter.Resources;
 
 namespace SoundFilter.Ui {
     public class SoundLog {
-        private SoundFilterPlugin Plugin { get; }
+        private Plugin Plugin { get; }
 
         private string _search = string.Empty;
 
-        internal SoundLog(SoundFilterPlugin plugin) {
+        internal SoundLog(Plugin plugin) {
             this.Plugin = plugin;
         }
 

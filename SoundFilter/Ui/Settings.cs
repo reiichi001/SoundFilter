@@ -6,14 +6,14 @@ using SoundFilter.Resources;
 
 namespace SoundFilter.Ui {
     public class Settings : IDisposable {
-        private SoundFilterPlugin Plugin { get; }
+        private Plugin Plugin { get; }
         private AddFilter AddFilter { get; }
         private AddFilter? EditFilter { get; set; }
 
         private bool _showWindow;
         private int _dragging = -1;
 
-        internal Settings(SoundFilterPlugin plugin) {
+        internal Settings(Plugin plugin) {
             this.Plugin = plugin;
             this.AddFilter = new AddFilter(plugin);
 
@@ -48,7 +48,7 @@ namespace SoundFilter.Ui {
 
             ImGui.SetNextWindowSize(new Vector2(500, 450), ImGuiCond.FirstUseEver);
 
-            var windowTitle = string.Format(Language.SettingsWindowTitle, this.Plugin.Name);
+            var windowTitle = string.Format(Language.SettingsWindowTitle, Plugin.Name);
             if (!ImGui.Begin($"{windowTitle}###soundfilter-settings", ref this._showWindow)) {
                 ImGui.End();
                 return;

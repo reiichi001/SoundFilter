@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Globalization;
-using Dalamud.Logging;
 using SoundFilter.Resources;
 
 namespace SoundFilter.Ui {
     public class PluginUi : IDisposable {
-        private SoundFilterPlugin Plugin { get; }
+        private Plugin Plugin { get; }
         internal Settings Settings { get; }
         private SoundLog SoundLog { get; }
 
-        internal PluginUi(SoundFilterPlugin plugin) {
+        internal PluginUi(Plugin plugin) {
             this.Plugin = plugin;
 
             this.ConfigureLanguage();
@@ -34,7 +33,7 @@ namespace SoundFilter.Ui {
             try {
                 Language.Culture = new CultureInfo(langCode);
             } catch (Exception ex) {
-                PluginLog.LogError(ex, $"Could not set culture to {langCode} - falling back to default");
+                Plugin.Log.Error(ex, $"Could not set culture to {langCode} - falling back to default");
                 Language.Culture = CultureInfo.DefaultThreadCurrentUICulture;
             }
         }
