@@ -11,7 +11,7 @@ namespace SoundFilter.Config {
 
         public int Version { get; set; } = LatestVersion;
 
-        private DalamudPluginInterface? Interface { get; set; }
+        private IDalamudPluginInterface? Interface { get; set; }
         private Dictionary<string, Glob> CachedGlobs { get; } = new();
 
         public bool Enabled = true;
@@ -41,7 +41,7 @@ namespace SoundFilter.Config {
             }
         }
 
-        internal void Initialise(DalamudPluginInterface @interface) {
+        internal void Initialise(IDalamudPluginInterface @interface) {
             this.Interface = @interface;
         }
 

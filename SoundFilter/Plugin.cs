@@ -18,7 +18,7 @@ namespace SoundFilter {
         internal static IPluginLog Log { get; private set; } = null!;
 
         [PluginService]
-        internal DalamudPluginInterface Interface { get; init; } = null!;
+        internal IDalamudPluginInterface Interface { get; init; } = null!;
 
         [PluginService]
         internal IChatGui ChatGui { get; init; } = null!;
