@@ -1,7 +1,6 @@
 <Project Sdk="Dalamud.Net.Sdk/12.0.1">
     <PropertyGroup>
         <Version>1.4.16</Version>
-        <Nullable>enable</Nullable>
         <Platforms>x64</Platforms>
     </PropertyGroup>
 
