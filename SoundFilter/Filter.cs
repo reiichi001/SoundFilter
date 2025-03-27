@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
@@ -308,136 +308,104 @@ internal unsafe class Filter : IDisposable
 
     private ResourceHandle* GetResourceSyncDetour(
         ResourceManager* resourceManager,
-        ResourceCategory* pCategoryId,
-        ResourceType* pResourceType,
-        int* pResourceHash,
-        byte* pPath,
+        ResourceCategory* categoryId,
+        ResourceType* resourceType,
+        int* resourceHash,
+        byte* path,
         GetResourceParameters* pGetResParams,
-        nint unk7,
-        uint unk8
-    )
-    {
-        return ResourceDetour(
+        nint unk8,
+        uint unk9
+    ) =>
+        GetResourceHandler(
+            true,
             resourceManager,
-            pCategoryId,
-            pResourceType,
-            pResourceHash,
-            pPath,
+            categoryId,
+            resourceType,
+            resourceHash,
+            path,
             pGetResParams,
-            null,
-            unk7,
+            0,
             unk8,
-            true
+            unk9
         );
-    }
 
     private ResourceHandle* GetResourceAsyncDetour(
         ResourceManager* resourceManager,
-        ResourceCategory* pCategoryId,
-        ResourceType* pResourceType,
-        int* pResourceHash,
-        byte* pPath,
+        ResourceCategory* categoryId,
+        ResourceType* resourceType,
+        int* resourceHash,
+        byte* path,
         GetResourceParameters* pGetResParams,
-        byte isUnknown,
+        byte isUnk,
+        nint unk8,
+        uint unk9
+    ) =>
+        GetResourceHandler(
+            false,
+            resourceManager,
+            categoryId,
+            resourceType,
+            resourceHash,
+            path,
+            pGetResParams,
+            isUnk,
+            unk8,
+            unk9
+        );
+
+    private ResourceHandle* GetResourceHandler(
+        bool isSync,
+        ResourceManager* resourceManager,
+        ResourceCategory* categoryId,
+        ResourceType* resourceType,
+        int* resourceHash,
+        byte* path,
+        GetResourceParameters* pGetResParams,
+        byte isUnk,
         nint unk8,
         uint unk9
     )
     {
-        return ResourceDetour(
-            resourceManager,
-            pCategoryId,
-            pResourceType,
-            pResourceHash,
-            pPath,
-            pGetResParams,
-            isUnknown,
-            unk8,
-            unk9,
-            false
-        );
-    }
-
-    private ResourceHandle* ResourceDetour(
-        ResourceManager* resourceManager,
-        ResourceCategory* pCategoryId,
-        ResourceType* pResourceType,
-        int* pResourceHash,
-        byte* pPath,
-        GetResourceParameters* pGetResParams,
-        byte? isUnknown,
-        nint unk8,
-        uint unk9,
-        bool isSync
-    )
-    {
-        var ret = CallOriginalResourceHandler(
-            resourceManager,
-            pCategoryId,
-            pResourceType,
-            pResourceHash,
-            pPath,
-            pGetResParams,
-            isUnknown,
-            unk8,
-            unk9,
-            isSync
-        );
-
-        var path = Util.ReadTerminatedString(pPath);
-        if (ret != null && path.EndsWith(".scd"))
-        {
-            var scdData = Marshal.ReadIntPtr((IntPtr)ret + ResourceDataPointerOffset);
-            // if we immediately have the scd data, cache it, otherwise add it to a waiting list to hopefully be picked up at sound play time
-            if (scdData != IntPtr.Zero)
-            {
-                Scds[scdData] = path;
-            }
-        }
-
-        return ret;
-    }
-
-    private ResourceHandle* CallOriginalResourceHandler(
-        ResourceManager* resourceManager,
-        ResourceCategory* pCategoryId,
-        ResourceType* pResourceType,
-        int* pResourceHash,
-        byte* pPath,
-        GetResourceParameters* pGetResParams,
-        byte? isUnknown,
-        nint unk8,
-        uint unk9,
-        bool isSync
-    )
-    {
-        return isSync
+        var ret = isSync
             ? GetResourceSyncHook!.Original(
                 resourceManager,
-                pCategoryId,
-                pResourceType,
-                pResourceHash,
-                pPath,
+                categoryId,
+                resourceType,
+                resourceHash,
+                path,
                 pGetResParams,
                 unk8,
                 unk9
             )
             : GetResourceAsyncHook!.Original(
                 resourceManager,
-                pCategoryId,
-                pResourceType,
-                pResourceHash,
-                pPath,
+                categoryId,
+                resourceType,
+                resourceHash,
+                path,
                 pGetResParams,
-                isUnknown!.Value,
+                isUnk,
                 unk8,
                 unk9
             );
+
+        var strPath = Util.ReadTerminatedString(path);
+        if (ret != null && strPath.EndsWith(".scd"))
+        {
+            var scdData = Marshal.ReadIntPtr((IntPtr)ret + ResourceDataPointerOffset);
+            // if we immediately have the scd data, cache it, otherwise add it to a waiting list to hopefully be picked up at sound play time
+            if (scdData != IntPtr.Zero)
+            {
+                Scds[scdData] = strPath;
+            }
+        }
+
+        return ret;
     }
 
     private IntPtr LoadSoundFileDetour(IntPtr resourceHandle, uint a2)
     {
         var ret = LoadSoundFileHook!.Original(resourceHandle, a2);
-
         try
         {
             var handle = (ResourceHandle*)resourceHandle;
