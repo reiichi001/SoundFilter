@@ -134,9 +134,6 @@ internal unsafe class Filter : IDisposable
     {
         Plugin = plugin;
 
-        WasStreamingEnabled = Streaming;
-        Streaming = false;
-
         var (noSoundPtr, infoPtr) = SetUpNoSound();
         NoSoundPtr = noSoundPtr;
         InfoPtr = infoPtr;
