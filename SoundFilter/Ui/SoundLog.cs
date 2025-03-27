@@ -5,73 +5,86 @@ using Dalamud.Interface;
 using ImGuiNET;
 using SoundFilter.Resources;
 
-namespace SoundFilter.Ui {
-    public class SoundLog {
-        private Plugin Plugin { get; }
+namespace SoundFilter.Ui;
 
-        private string _search = string.Empty;
+public class SoundLog
+{
+    private Plugin Plugin { get; }
 
-        internal SoundLog(Plugin plugin) {
-            this.Plugin = plugin;
+    private string _search = string.Empty;
+
+    internal SoundLog(Plugin plugin)
+    {
+        Plugin = plugin;
+    }
+
+    internal void Draw()
+    {
+        if (!Plugin.Config.ShowLog)
+        {
+            return;
         }
 
-        internal void Draw() {
-            if (!this.Plugin.Config.ShowLog) {
-                return;
-            }
+        ImGui.SetNextWindowSize(new Vector2(500, 450), ImGuiCond.FirstUseEver);
 
-            ImGui.SetNextWindowSize(new Vector2(500, 450), ImGuiCond.FirstUseEver);
+        if (!ImGui.Begin(Language.LogWindowTitle, ref Plugin.Config.ShowLog))
+        {
+            ImGui.End();
+            return;
+        }
 
-            if (!ImGui.Begin(Language.LogWindowTitle, ref this.Plugin.Config.ShowLog)) {
-                ImGui.End();
-                return;
-            }
+        if (ImGui.Checkbox(Language.LogEnableLogging, ref Plugin.Config.LogEnabled))
+        {
+            Plugin.Config.Save();
+        }
 
-            if (ImGui.Checkbox(Language.LogEnableLogging, ref this.Plugin.Config.LogEnabled)) {
-                this.Plugin.Config.Save();
-            }
+        ImGui.SameLine();
 
-            ImGui.SameLine();
+        if (ImGui.Checkbox(Language.LogLogFiltered, ref Plugin.Config.LogFiltered))
+        {
+            Plugin.Config.Save();
+        }
 
-            if (ImGui.Checkbox(Language.LogLogFiltered, ref this.Plugin.Config.LogFiltered)) {
-                this.Plugin.Config.Save();
-            }
+        ImGui.InputText(Language.LogSearch, ref _search, 255);
 
-            ImGui.InputText(Language.LogSearch, ref this._search, 255);
+        var entries = (int)Plugin.Config.LogEntries;
+        if (ImGui.InputInt(Language.LogMaxRecentSounds, ref entries))
+        {
+            Plugin.Config.LogEntries = (uint)Math.Min(10_000, Math.Max(0, entries));
+            Plugin.Config.Save();
+        }
 
-            var entries = (int) this.Plugin.Config.LogEntries;
-            if (ImGui.InputInt(Language.LogMaxRecentSounds, ref entries)) {
-                this.Plugin.Config.LogEntries = (uint) Math.Min(10_000, Math.Max(0, entries));
-                this.Plugin.Config.Save();
-            }
+        ImGui.Separator();
 
-            ImGui.Separator();
-
-            if (ImGui.BeginChild("sounds")) {
-                var i = 0;
-                foreach (var recent in this.Plugin.Filter.Recent.Reverse()) {
-                    if (!string.IsNullOrWhiteSpace(this._search) && !recent.ContainsIgnoreCase(this._search)) {
-                        continue;
-                    }
-
-                    if (Util.IconButton(FontAwesomeIcon.Copy, $"copy-{recent}-{i}")) {
-                        ImGui.SetClipboardText(recent);
-                    }
-
-                    ImGui.SameLine();
-                    ImGui.TextUnformatted(recent);
-                    i += 1;
+        if (ImGui.BeginChild("sounds"))
+        {
+            var i = 0;
+            foreach (var recent in Plugin.Filter.Recent.Reverse())
+            {
+                if (!string.IsNullOrWhiteSpace(_search) && !recent.ContainsIgnoreCase(_search))
+                {
+                    continue;
                 }
 
-                ImGui.EndChild();
+                if (Util.IconButton(FontAwesomeIcon.Copy, $"copy-{recent}-{i}"))
+                {
+                    ImGui.SetClipboardText(recent);
+                }
+
+                ImGui.SameLine();
+                ImGui.TextUnformatted(recent);
+                i += 1;
             }
 
-            // god disabled this frame
-            if (!this.Plugin.Config.ShowLog) {
-                this.Plugin.Config.Save();
-            }
-
-            ImGui.End();
+            ImGui.EndChild();
         }
+
+        // god disabled this frame
+        if (!Plugin.Config.ShowLog)
+        {
+            Plugin.Config.Save();
+        }
+
+        ImGui.End();
     }
 }

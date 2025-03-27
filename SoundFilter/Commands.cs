@@ -3,81 +3,99 @@ using System.Linq;
 using Dalamud.Game.Command;
 using SoundFilter.Resources;
 
-namespace SoundFilter {
-    internal class Commands : IDisposable {
-        private const string Name = "/soundfilter";
+namespace SoundFilter;
 
-        private Plugin Plugin { get; }
+internal class Commands : IDisposable
+{
+    private const string Name = "/soundfilter";
 
-        public Commands(Plugin plugin) {
-            this.Plugin = plugin;
+    private Plugin Plugin { get; }
 
-            this.Plugin.CommandManager.AddHandler(Name, new CommandInfo(this.OnCommand) {
-                HelpMessage = $"Toggle the {Plugin.Name} config",
-            });
+    public Commands(Plugin plugin)
+    {
+        Plugin = plugin;
+
+        Services.CommandManager.AddHandler(
+            Name,
+            new CommandInfo(OnCommand) { HelpMessage = $"Toggle the {Plugin.Name} config" }
+        );
+    }
+
+    public void Dispose()
+    {
+        Services.CommandManager.RemoveHandler(Name);
+    }
+
+    private void OnCommand(string command, string args)
+    {
+        if (string.IsNullOrWhiteSpace(args))
+        {
+            Plugin.Ui.Settings.Toggle();
+            return;
         }
 
-        public void Dispose() {
-            this.Plugin.CommandManager.RemoveHandler(Name);
+        var chat = Services.ChatGui;
+
+        var split = args.Split(' ');
+        if (split.Length < 1)
+        {
+            chat.PrintError($"[{Plugin.Name}] {Language.CommandNotEnoughArguments}");
+            chat.PrintError($"[{Plugin.Name}] /soundfilter log");
+            chat.PrintError($"[{Plugin.Name}] /soundfilter <enable|disable|toggle> [filter name]");
+            return;
         }
 
-        private void OnCommand(string command, string args) {
-            if (string.IsNullOrWhiteSpace(args)) {
-                this.Plugin.Ui.Settings.Toggle();
-                return;
-            }
-
-            var chat = this.Plugin.ChatGui;
-
-            var split = args.Split(' ');
-            if (split.Length < 1) {
-                chat.PrintError($"[{Plugin.Name}] {Language.CommandNotEnoughArguments}");
-                chat.PrintError($"[{Plugin.Name}] /soundfilter log");
-                chat.PrintError($"[{Plugin.Name}] /soundfilter <enable|disable|toggle> [filter name]");
-                return;
-            }
-
-            if (split[0] == "log") {
-                this.Plugin.Config.ShowLog ^= true;
-                this.Plugin.Config.Save();
-                return;
-            }
-
-            var filterName = split.Length > 1 ? string.Join(" ", split.Skip(1)) : null;
-            var filter = filterName == null ? null : this.Plugin.Config.Filters.FirstOrDefault(filter => filter.Name == filterName);
-            if (filterName != null && filter == null) {
-                chat.PrintError($"[{Plugin.Name}] {Language.CommandNoSuchFilter}");
-                return;
-            }
-
-            bool? enabled = split[0] switch {
-                "enable" => true,
-                "disable" => false,
-                "toggle" when filter == null => !this.Plugin.Config.Enabled,
-                "toggle" => !filter.Enabled,
-                _ => null,
-            };
-            if (enabled == null) {
-                chat.PrintError($"[{Plugin.Name}] {Language.CommandInvalidSubcommand}");
-                return;
-            }
-
-            if (filter != null) {
-                filter.Enabled = enabled.Value;
-            } else {
-                switch (this.Plugin.Config.Enabled) {
-                    case true when !enabled.Value:
-                        this.Plugin.Filter.Disable();
-                        break;
-                    case false when enabled.Value:
-                        this.Plugin.Filter.Enable();
-                        break;
-                }
-
-                this.Plugin.Config.Enabled = enabled.Value;
-            }
-
-            this.Plugin.Config.Save();
+        if (split[0] == "log")
+        {
+            Plugin.Config.ShowLog ^= true;
+            Plugin.Config.Save();
+            return;
         }
+
+        var filterName = split.Length > 1 ? string.Join(" ", split.Skip(1)) : null;
+        var filter =
+            filterName == null
+                ? null
+                : Plugin.Config.Filters.FirstOrDefault(filter => filter.Name == filterName);
+        if (filterName != null && filter == null)
+        {
+            chat.PrintError($"[{Plugin.Name}] {Language.CommandNoSuchFilter}");
+            return;
+        }
+
+        bool? enabled = split[0] switch
+        {
+            "enable" => true,
+            "disable" => false,
+            "toggle" when filter == null => !Plugin.Config.Enabled,
+            "toggle" => !filter.Enabled,
+            _ => null,
+        };
+        if (enabled == null)
+        {
+            chat.PrintError($"[{Plugin.Name}] {Language.CommandInvalidSubcommand}");
+            return;
+        }
+
+        if (filter != null)
+        {
+            filter.Enabled = enabled.Value;
+        }
+        else
+        {
+            switch (Plugin.Config.Enabled)
+            {
+                case true when !enabled.Value:
+                    Plugin.Filter.Disable();
+                    break;
+                case false when enabled.Value:
+                    Plugin.Filter.Enable();
+                    break;
+            }
+
+            Plugin.Config.Enabled = enabled.Value;
+        }
+
+        Plugin.Config.Save();
     }
 }
