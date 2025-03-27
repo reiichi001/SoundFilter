@@ -5,7 +5,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.System.Resource;
 using FFXIVClientStructs.FFXIV.Client.System.Resource.Handle;
+using SoundFilter.GameTypes;
 
 namespace SoundFilter;
 
@@ -16,8 +18,10 @@ internal unsafe class Filter : IDisposable
         internal const string PlaySpecificSound =
             "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 33 F6 8B DA 48 8B F9 0F BA E2 0F";
 
+        // https://github.com/Ottermandias/Penumbra.GameData/blob/main/Signatures.cs#L10-L11
         internal const string GetResourceSync = "E8 ?? ?? ?? ?? 48 8B D8 8B C7";
-        internal const string GetResourceAsync = "E8 ?? ?? ?? ?? 48 8B D8 EB 07 F0 FF 83";
+        internal const string GetResourceAsync =
+            "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
         internal const string LoadSoundFile = "E8 ?? ?? ?? ?? 48 85 C0 75 12 B0 F6";
 
         internal const string MusicManagerOffset =
@@ -32,23 +36,28 @@ internal unsafe class Filter : IDisposable
 
     private delegate void* PlaySpecificSoundDelegate(long a1, int idx);
 
-    private delegate void* GetResourceSyncPrototype(
-        IntPtr pFileManager,
-        uint* pCategoryId,
-        char* pResourceType,
-        uint* pResourceHash,
-        char* pPath,
-        void* pUnknown
+    // https://github.com/xivdev/Penumbra/blob/master/Penumbra/Interop/Hooks/ResourceLoading/ResourceService.cs#L96-L102
+    private delegate ResourceHandle* GetResourceSyncPrototype(
+        ResourceManager* resourceManager,
+        ResourceCategory* pCategoryId,
+        ResourceType* pResourceType,
+        int* pResourceHash,
+        byte* pPath,
+        GetResourceParameters* pGetResParams,
+        nint unk7,
+        uint unk8
     );
 
-    private delegate void* GetResourceAsyncPrototype(
-        IntPtr pFileManager,
-        uint* pCategoryId,
-        char* pResourceType,
-        uint* pResourceHash,
-        char* pPath,
-        void* pUnknown,
-        bool isUnknown
+    private delegate ResourceHandle* GetResourceAsyncPrototype(
+        ResourceManager* resourceManager,
+        ResourceCategory* pCategoryId,
+        ResourceType* pResourceType,
+        int* pResourceHash,
+        byte* pPath,
+        GetResourceParameters* pGetResParams,
+        byte isUnknown,
+        nint unk8,
+        uint unk9
     );
 
     private delegate IntPtr LoadSoundFileDelegate(IntPtr resourceHandle, uint a2);
@@ -297,72 +306,84 @@ internal unsafe class Filter : IDisposable
         return shouldFilter;
     }
 
-    private void* GetResourceSyncDetour(
-        IntPtr pFileManager,
-        uint* pCategoryId,
-        char* pResourceType,
-        uint* pResourceHash,
-        char* pPath,
-        void* pUnknown
+    private ResourceHandle* GetResourceSyncDetour(
+        ResourceManager* resourceManager,
+        ResourceCategory* pCategoryId,
+        ResourceType* pResourceType,
+        int* pResourceHash,
+        byte* pPath,
+        GetResourceParameters* pGetResParams,
+        nint unk7,
+        uint unk8
     )
     {
         return ResourceDetour(
-            true,
-            pFileManager,
+            resourceManager,
             pCategoryId,
             pResourceType,
             pResourceHash,
             pPath,
-            pUnknown,
+            pGetResParams,
+            null,
+            unk7,
+            unk8,
+            true
+        );
+    }
+
+    private ResourceHandle* GetResourceAsyncDetour(
+        ResourceManager* resourceManager,
+        ResourceCategory* pCategoryId,
+        ResourceType* pResourceType,
+        int* pResourceHash,
+        byte* pPath,
+        GetResourceParameters* pGetResParams,
+        byte isUnknown,
+        nint unk8,
+        uint unk9
+    )
+    {
+        return ResourceDetour(
+            resourceManager,
+            pCategoryId,
+            pResourceType,
+            pResourceHash,
+            pPath,
+            pGetResParams,
+            isUnknown,
+            unk8,
+            unk9,
             false
         );
     }
 
-    private void* GetResourceAsyncDetour(
-        IntPtr pFileManager,
-        uint* pCategoryId,
-        char* pResourceType,
-        uint* pResourceHash,
-        char* pPath,
-        void* pUnknown,
-        bool isUnknown
-    )
-    {
-        return ResourceDetour(
-            false,
-            pFileManager,
-            pCategoryId,
-            pResourceType,
-            pResourceHash,
-            pPath,
-            pUnknown,
-            isUnknown
-        );
-    }
-
-    private void* ResourceDetour(
-        bool isSync,
-        IntPtr pFileManager,
-        uint* pCategoryId,
-        char* pResourceType,
-        uint* pResourceHash,
-        char* pPath,
-        void* pUnknown,
-        bool isUnknown
+    private ResourceHandle* ResourceDetour(
+        ResourceManager* resourceManager,
+        ResourceCategory* pCategoryId,
+        ResourceType* pResourceType,
+        int* pResourceHash,
+        byte* pPath,
+        GetResourceParameters* pGetResParams,
+        byte? isUnknown,
+        nint unk8,
+        uint unk9,
+        bool isSync
     )
     {
         var ret = CallOriginalResourceHandler(
-            isSync,
-            pFileManager,
+            resourceManager,
             pCategoryId,
             pResourceType,
             pResourceHash,
             pPath,
-            pUnknown,
-            isUnknown
+            pGetResParams,
+            isUnknown,
+            unk8,
+            unk9,
+            isSync
         );
 
-        var path = Util.ReadTerminatedString((byte*)pPath);
+        var path = Util.ReadTerminatedString(pPath);
         if (ret != null && path.EndsWith(".scd"))
         {
             var scdData = Marshal.ReadIntPtr((IntPtr)ret + ResourceDataPointerOffset);
@@ -376,34 +397,40 @@ internal unsafe class Filter : IDisposable
         return ret;
     }
 
-    private void* CallOriginalResourceHandler(
-        bool isSync,
-        IntPtr pFileManager,
-        uint* pCategoryId,
-        char* pResourceType,
-        uint* pResourceHash,
-        char* pPath,
-        void* pUnknown,
-        bool isUnknown
+    private ResourceHandle* CallOriginalResourceHandler(
+        ResourceManager* resourceManager,
+        ResourceCategory* pCategoryId,
+        ResourceType* pResourceType,
+        int* pResourceHash,
+        byte* pPath,
+        GetResourceParameters* pGetResParams,
+        byte? isUnknown,
+        nint unk8,
+        uint unk9,
+        bool isSync
     )
     {
         return isSync
             ? GetResourceSyncHook!.Original(
-                pFileManager,
+                resourceManager,
                 pCategoryId,
                 pResourceType,
                 pResourceHash,
                 pPath,
-                pUnknown
+                pGetResParams,
+                unk8,
+                unk9
             )
             : GetResourceAsyncHook!.Original(
-                pFileManager,
+                resourceManager,
                 pCategoryId,
                 pResourceType,
                 pResourceHash,
                 pPath,
-                pUnknown,
-                isUnknown
+                pGetResParams,
+                isUnknown!.Value,
+                unk8,
+                unk9
             );
     }
 
