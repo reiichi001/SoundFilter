@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.Resource;
 using FFXIVClientStructs.FFXIV.Client.System.Resource.Handle;
 using SoundFilter.GameTypes;
@@ -23,14 +22,10 @@ internal unsafe class Filter : IDisposable
         internal const string GetResourceAsync =
             "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
         internal const string LoadSoundFile = "E8 ?? ?? ?? ?? 48 85 C0 75 12 B0 F6";
-
-        internal const string MusicManagerOffset =
-            "48 89 87 ?? ?? ?? ?? 49 8B CC E8 ?? ?? ?? ?? 48 8B 8F";
     }
 
     // Updated: 5.55
     private const int ResourceDataPointerOffset = 0xB0;
-    private const int MusicManagerStreamingOffset = 0x32;
 
     #region Delegates
 
@@ -77,7 +72,6 @@ internal unsafe class Filter : IDisposable
     #endregion
 
     private Plugin Plugin { get; }
-    private bool WasStreamingEnabled { get; }
 
     private ConcurrentDictionary<IntPtr, string> Scds { get; } = new();
 
@@ -85,50 +79,6 @@ internal unsafe class Filter : IDisposable
 
     private IntPtr NoSoundPtr { get; }
     private IntPtr InfoPtr { get; }
-
-    private IntPtr MusicManager
-    {
-        get
-        {
-            if (
-                !Services.SigScanner.TryScanText(
-                    Signatures.MusicManagerOffset,
-                    out var instructionPtr
-                )
-            )
-            {
-                Services.PluginLog.Warning("Could not find music manager");
-                return IntPtr.Zero;
-            }
-
-            var offset = *(int*)(instructionPtr + 3);
-            return *(IntPtr*)((IntPtr)Framework.Instance() + offset);
-        }
-    }
-
-    private bool Streaming
-    {
-        get
-        {
-            var manager = MusicManager;
-            if (manager == IntPtr.Zero)
-            {
-                return false;
-            }
-
-            return *(byte*)(manager + MusicManagerStreamingOffset) > 0;
-        }
-        set
-        {
-            var manager = MusicManager;
-            if (manager == IntPtr.Zero)
-            {
-                return;
-            }
-
-            *(byte*)(manager + MusicManagerStreamingOffset) = (byte)(value ? 1 : 0);
-        }
-    }
 
     internal Filter(Plugin plugin)
     {
@@ -242,8 +192,6 @@ internal unsafe class Filter : IDisposable
 
         Marshal.FreeHGlobal(InfoPtr);
         Marshal.FreeHGlobal(NoSoundPtr);
-
-        Streaming = WasStreamingEnabled;
     }
 
     private void* PlaySpecificSoundDetour(long a1, int idx)
